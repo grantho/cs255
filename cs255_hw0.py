@@ -1,9 +1,50 @@
 import sys
-import binascii
 
 def strxor(a, b):     # xor two strings (trims the longer input)
     return "".join([chr(ord(x) ^ ord(y)) for (x, y) in zip(a, b)])
-	
+
+# Replace gibberish characters with *
+def clean_string(string):
+    clean_str = ''
+    for char in string:
+        if char.isalpha():
+            clean_str += char
+        #elif char == "[" or char =="]" or char == "\\" or char =="^":
+        #    clean_str += char
+        else:
+            clean_str += '*'
+    return clean_str
+
+def write_to_file(fname, ct_list):
+    file = open(fname, 'w')
+    for xor in ct_list:
+        file.write("%s\n" % xor)
+    file.close()
+
+# XOR all ciphertexts with target and clean XOR's
+def xor_ct_and_target(ciphertexts, target):
+    target_xor = []
+    for ct in ciphertexts:
+        xor = strxor(ct, target)
+        cleaned_xor = clean_string(xor)
+        target_xor.append(cleaned_xor)
+    # write_to_file('target_xor.txt', target_xor)
+    return target_xor
+
+# XOR all pairs of ciphertexts and clean the XOR's
+def xor_ct_pairs(ciphertexts):
+    pairwise_xor = []
+    for i in range(0, len(ciphertexts)):
+        current_xor = []
+        for j in range(0, len(ciphertexts)):
+            if i != j:
+                clean_xor = clean_string(strxor(ciphertexts[i], ciphertexts[j]))
+                current_xor.append(clean_xor)
+        pairwise_xor.append(current_xor)
+        filename = 'ct' + str(i+1) + '.txt'
+        #write_to_file(filename, current_xor)
+    return pairwise_xor
+
 ct1 = '315c4eeaa8b5f8aaf9174145bf43e1784b8fa00dc71d885a804e5ee9fa40b16349c146fb778cdf2d3aff021dfff5b403b510d0d0455468aeb98622b137dae857553ccd8883a7bc37520e06e515d22c954eba5025b8cc57ee59418ce7dc6bc41556bdb36bbca3e8774301fbcaa3b83b220809560987815f65286764703de0f3d524400a19b159610b11ef3e'
 ct2 = '234c02ecbbfbafa3ed18510abd11fa724fcda2018a1a8342cf064bbde548b12b07df44ba7191d9606ef4081ffde5ad46a5069d9f7f543bedb9c861bf29c7e205132eda9382b0bc2c5c4b45f919cf3a9f1cb74151f6d551f4480c82b2cb24cc5b028aa76eb7b4ab24171ab3cdadb8356f'
 ct3 = '32510ba9a7b2bba9b8005d43a304b5714cc0bb0c8a34884dd91304b8ad40b62b07df44ba6e9d8a2368e51d04e0e7b207b70b9b8261112bacb6c866a232dfe257527dc29398f5f3251a0d47e503c66e935de81230b59b7afb5f41afa8d661cb'
@@ -14,36 +55,17 @@ ct7 = '32510bfbacfbb9befd54415da243e1695ecabd58c519cd4bd90f1fa6ea5ba47b01c909ba7
 ct8 = '315c4eeaa8b5f8bffd11155ea506b56041c6a00c8a08854dd21a4bbde54ce56801d943ba708b8a3574f40c00fff9e00fa1439fd0654327a3bfc860b92f89ee04132ecb9298f5fd2d5e4b45e40ecc3b9d59e9417df7c95bba410e9aa2ca24c5474da2f276baa3ac325918b2daada43d6712150441c2e04f6565517f317da9d3'
 ct9 = '271946f9bbb2aeadec111841a81abc300ecaa01bd8069d5cc91005e9fe4aad6e04d513e96d99de2569bc5e50eeeca709b50a8a987f4264edb6896fb537d0a716132ddc938fb0f836480e06ed0fcd6e9759f40462f9cf57f4564186a2c1778f1543efa270bda5e933421cbe88a4a52222190f471e9bd15f652b653b7071aec59a2705081ffe72651d08f822c9ed6d76e48b63ab15d0208573a7eef027'
 ct10 = '466d06ece998b7a2fb1d464fed2ced7641ddaa3cc31c9941cf110abbf409ed39598005b3399ccfafb61d0315fca0a314be138a9f32503bedac8067f03adbf3575c3b8edc9ba7f537530541ab0f9f3cd04ff50d66f1d559ba520e89a2cb2a83'
-target = '32510ba9babebbbefd001547a810e67149caee11d945cd7fc81a05e9f85aac650e9052ba6a8cd8257bf14d13e6f0a803b54fde9e77472dbff89d71b57bddef121336cb85ccb8f3315f4b52e301d16e9f52f904'
+ct11 = '32510ba9babebbbefd001547a810e67149caee11d945cd7fc81a05e9f85aac650e9052ba6a8cd8257bf14d13e6f0a803b54fde9e77472dbff89d71b57bddef121336cb85ccb8f3315f4b52e301d16e9f52f904'
+ct_hex = [ct1, ct2, ct3, ct4, ct5, ct6, ct7, ct8, ct9, ct10]
 
-ciphertexts = [ct1, ct2, ct3, ct4, ct5, ct6, ct7, ct8, ct9, ct10]
-target_xor =[]
+target = ct11.decode('hex')
+ciphertexts = []
+for ct in ct_hex:
+    ciphertexts.append(ct.decode('hex'))
 
-# XOR all ciphertexts with target
-for ct in ciphertexts:
-    xor = strxor(ct, target)
-    target_xor.append(xor)
-
-# Replace gibberish characters with *
-def clean_string(string):
-    clean_str = ''
-    for char in string:
-        if char.isalpha():
-            clean_str += char
-        else:
-            clean_str += '*'
-    return clean_str
+target_xor = xor_ct_and_target(ciphertexts, target)
+pairwise_xor = xor_ct_pairs(ciphertexts)
 
 
-cleaned_target_xor = []
-# Replace gibberish characters with '*'
-for xor_string in target_xor:
-    cleaned_target_xor.append(clean_string(xor_string))
 
-
-for xor in cleaned_target_xor:
-    print(xor)
-    
-            
-        
 
